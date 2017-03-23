@@ -1,0 +1,309 @@
+<!-- John Carneiro -->
+<!-- Project -->
+<!-- Tested with Google Chrome Browser version 38.0.2125.104 m -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>unite for diabetes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+	<!--link rel="stylesheet/less" href="less/bootstrap.less" type="text/css" /-->
+	<!--link rel="stylesheet/less" href="less/responsive.less" type="text/css" /-->
+	<!--script src="js/less-1.3.3.min.js"></script-->
+	<!--append ‘#!watch’ to the browser URL, then refresh the page. -->
+	
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
+
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+  <![endif]-->
+
+  <!-- Fav and touch icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/apple-touch-icon-144-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/apple-touch-icon-114-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/apple-touch-icon-72-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-57-precomposed.png">
+  <link rel="shortcut icon" href="img/favicon.png">
+
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  
+  <script>
+
+google.load('visualization', '1', {packages: ['corechart', 'line']});
+google.setOnLoadCallback(drawCurveTypes);
+
+function drawCurveTypes() 
+{
+    var selectUtility = getCookieUser("selectUtility");
+    if (selectUtility == "") 
+    {          
+        selectUtility = "electricity";      
+        setCookieUser("selectUtility", selectUtility) 
+    }
+    
+    var settingsConsumerYear = getCookieUser("settingsConsumerYear");
+    if (settingsConsumerYear == "") 
+    {
+        settingsConsumerYear = new Date().getFullYear();
+        setCookieUser("settingsConsumerYear", settingsConsumerYear);
+    }    
+
+    var selectUtilityToCompareWith = getCookieUser("selectUtilityToCompareWith");
+    if (selectUtilityToCompareWith == "") 
+    {
+        selectUtilityToCompareWith = "selectedUtilityTarget";
+        setCookieUser("selectUtilityToCompareWith", selectUtilityToCompareWith);          
+    }
+    
+    var settingsConsumerYearToCompareWith = getCookieUser("settingsConsumerYearToCompareWith");
+    if (settingsConsumerYearToCompareWith == "") 
+    {
+        settingsConsumerYearToCompareWith = new Date().getFullYear();
+        setCookieUser("settingsConsumerYearToCompareWith", settingsConsumerYearToCompareWith);
+    }       
+    
+    document.getElementById("headerAnalyze").innerHTML = "Analyze - " + settingsConsumerYear + " - " + getUtilityText(selectUtility);     
+    
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'X');
+    
+    data.addColumn('number', settingsConsumerYear);
+    
+    if (selectUtilityToCompareWith == "selectedUtilityTarget")
+    {
+        data.addColumn('number', settingsConsumerYearToCompareWith + ' Target');
+    }
+    else
+    {
+        data.addColumn('number', settingsConsumerYearToCompareWith);
+    }    
+
+    // actual data
+    var interval1 = 0;
+    var interval2 = 0;
+    var interval3 = 0;
+    var interval4 = 0;
+    var interval5 = 0;
+    var interval6 = 0;
+    var interval7 = 0;
+    var interval8 = 0;
+    var interval9 = 0;
+    var interval10 = 0;
+    var interval11 = 0;
+    var interval12 = 0;
+  
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval1") != "")
+        interval1 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval1"));
+      
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval2") != "")
+        interval2 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval2"));
+  
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval3") != "")   
+        interval3 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval3"));
+    
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval4") != "")    
+        interval4 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval4"));
+         
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval5") != "")    
+        interval5 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval5"));
+        
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval6") != "")    
+        interval6 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval6"));
+        
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval7") != "")    
+        interval7 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval7"));
+      
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval8") != "")
+        interval8 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval8"));
+      
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval9") != "")
+        interval9 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval9"));    
+   
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval10") != "")
+        interval10 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval10"));
+      
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval11") != "")    
+        interval11 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval11"));   
+   
+    if (getCookieUser(settingsConsumerYear + selectUtility + "interval12") != "")   
+        interval12 = parseFloat(getCookieUser(settingsConsumerYear + selectUtility + "interval12"));
+
+    // target data
+    var interval1Target = 0;
+    var interval2Target = 0;
+    var interval3Target = 0;
+    var interval4Target = 0;
+    var interval5Target = 0;
+    var interval6Target = 0;
+    var interval7Target = 0;
+    var interval8Target = 0;
+    var interval9Target = 0;
+    var interval10Target = 0;
+    var interval11Target = 0;
+    var interval12Target = 0;
+  
+    var targetSelectUtility = selectUtility;
+    
+    if (selectUtilityToCompareWith == "selectedUtilityTarget") 
+    {    
+        if (targetSelectUtility.indexOf("Target") == -1)
+        {
+            targetSelectUtility = targetSelectUtility + "Target";
+        }
+    }
+    
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval1") != "")
+        interval1Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval1"));
+      
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval2") != "")
+        interval2Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval2"));
+  
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval3") != "")   
+        interval3Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval3"));
+    
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval4") != "")    
+        interval4Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval4"));
+         
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval5") != "")    
+        interval5Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval5"));
+        
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval6") != "")    
+        interval6Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval6"));
+        
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval7") != "")    
+        interval7Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval7"));
+      
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval8") != "")
+        interval8Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval8"));
+      
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval9") != "")
+        interval9Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval9"));    
+   
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval10") != "")
+        interval10Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval10"));
+      
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval11") != "")    
+        interval11Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval11"));   
+   
+    if (getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval12") != "")   
+        interval12Target = parseFloat(getCookieUser(settingsConsumerYearToCompareWith + targetSelectUtility + "interval12"));
+    
+    var selectUtilityTotal = interval1 + interval2 + interval3 + interval4 + interval5 + interval6 + interval7 + interval8 + interval9 + interval10 + interval11 + interval12;
+    document.getElementById("selectUtilityTotal").innerHTML = "Total for " + settingsConsumerYear + " - " + getUtilityText(selectUtility) + ": " + selectUtilityTotal + " (" + getUtilityUnits(selectUtility) + ")";  
+
+    var selectUtilityToCompareWithText = getUtilityText(selectUtility);
+    if (selectUtilityToCompareWith == "selectedUtilityTarget") 
+    {   
+        if (selectUtility.indexOf("Target") == -1)
+        {
+            selectUtilityToCompareWithText = getUtilityText(selectUtility) + " Target";
+        }
+    }
+    
+    var selectUtilityToCompareWithTotal = interval1Target + interval2Target + interval3Target + interval4Target + interval5Target + interval6Target + interval7Target + interval8Target + interval9Target + interval10Target + interval11Target + interval12Target;    
+    document.getElementById("selectUtilityToCompareWithTotal").innerHTML = "Total for " + settingsConsumerYearToCompareWith + " - " + selectUtilityToCompareWithText + ": " + selectUtilityToCompareWithTotal + " (" + getUtilityUnits(selectUtility) + ")";     
+
+      data.addRows([
+        [1, interval1, interval1Target],    
+        [2, interval2, interval2Target],   
+        [3, interval3, interval3Target],  
+        [4, interval4, interval4Target],   
+        [5, interval5, interval5Target],  
+        [6, interval6, interval6Target],
+        [7, interval7, interval7Target],   
+        [8, interval8, interval8Target],  
+        [9, interval9, interval9Target],  
+        [10, interval10, interval10Target],  
+        [11, interval11, interval11Target], 
+        [12, interval12, interval12Target]
+      ]);
+      
+      var options = {
+        hAxis: {
+          title: 'Bill number'
+        },
+        vAxis: {
+          title: getUtilityUnits(selectUtility)
+        },
+
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+    }  
+  
+  </script>  
+
+  
+</head>
+
+<body onload="enableLinks()">
+<div class="container">
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<nav class="navbar navbar-default" role="navigation">
+				<div class="navbar-header">
+					 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"> <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button> <a class="navbar-brand" href="index.html"><img src="img/favicon.png" alt="Cinque Terre" width="100" height="58"> <span style="color:lightblue"></span><span style="color:default"></span> </a>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav navbar-right">
+                        <li>     
+							<a href="login.html" id="linkLogin">Login (optional)</a>                     
+                        </li>     
+                        <li>     
+						<li>                         
+							<a href="editdata.html" id="linkEditDataConsumer">Edit patient data</a>
+                        </li>      
+						<li>                             
+							<a href="analyze.html" id="linkAnalyze">Train</a>
+                        </li>                               
+						<li>                             
+							<a href="analyze.html" id="linkAnalyze">Predict</a>
+                        </li>                           
+						<li>                             
+							<a href="settings.html" id="linkSettingsConsumer">Settings</a>
+                        </li>    
+					</ul>
+				</div>
+				
+			</nav>
+		</div>
+	</div>
+	<div class="row clearfix" style="width: 100%;">
+		<div class="col-md-4 column" style="width: 100%;">    
+     
+            <h3 id="headerAnalyze">Analyze</h3>
+
+            <div id="chart_div" style="width: 100%;"></div>
+            
+            <div class="form-group">
+                <span id="selectUtilityTotal">Total:</span>
+            </div> 
+            <div class="form-group">
+                <span id="selectUtilityToCompareWithTotal">Total:</span>
+            </div>              
+            
+        </div>
+	</div>
+    
+    <hr>
+      
+    <footer>
+        <p>&copy; unite for diabetes 2017</p>
+    </footer>    
+    
+</div>
+
+    <!-- Placed at the end of the document so the pages load faster -->
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/scripts.js"></script>
+    
+</body>
+</html>
