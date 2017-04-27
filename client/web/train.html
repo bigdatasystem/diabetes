@@ -33,7 +33,7 @@
   
 </head>
 
-<body onload="loadSettingsConsumer()">
+<body onload="loadLogin()">
 <div class="container">
 	<div class="row clearfix">
 		<div class="col-md-12 column">
@@ -57,7 +57,7 @@
                         </li>                           
 						<li>                             
 							<a href="settings.html" id="linkSettingsConsumer">Settings</a>
-                        </li>         
+                        </li>            
 					</ul>
 				</div>
 				
@@ -66,17 +66,13 @@
 	</div>
 	<div class="row clearfix">
 		<div class="col-md-4 column">    
-            <h3>Settings</h3>
-            <form role="form">
-                
-                <div class="form-group">
-                    <label for="electricityUtilityFreqInput">Machine learning algorithm:</label>
-                    <select id="electricityUtilityFreqInput" class="form-control">
-                        <option value="monthly">Random Forest</option>
-                        <option value="other">Neural Network</option>                                                 
-                    </select>                        
-                </div> 
-                  
+            <h3>Train/Test system</h3>
+            <form role="form">             
+                <table>
+                  <tr>
+                    <td><button type="submit" id="buttonTrainTest" class="btn btn-default">Train/Test system</button></td>   		
+                  </tr>
+                </table>
             </form>
 		</div>        
 	</div>

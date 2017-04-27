@@ -36,7 +36,7 @@
   <script>
 
 google.load('visualization', '1', {packages: ['corechart', 'line']});
-google.setOnLoadCallback(drawCurveTypes);
+//google.setOnLoadCallback(drawCurveTypes);
 
 function drawCurveTypes() 
 {
@@ -255,20 +255,19 @@ function drawCurveTypes()
 					<ul class="nav navbar-nav navbar-right">
                         <li>     
 							<a href="login.html" id="linkLogin">Login (optional)</a>                     
-                        </li>     
-                        <li>     
+                        </li>        
 						<li>                         
-							<a href="editdata.html" id="linkEditDataConsumer">Edit patient data</a>
+							<a href="editdata.html" id="linkEditDataConsumer">Edit/Predict patient</a>
                         </li>      
 						<li>                             
-							<a href="analyze.html" id="linkAnalyze">Train</a>
+							<a href="train.html" id="linkAnalyze">Train/Test system</a>
                         </li>                               
 						<li>                             
-							<a href="analyze.html" id="linkAnalyze">Predict</a>
+							<a href="analyze.html" id="linkAnalyze">Analyze system</a>
                         </li>                           
 						<li>                             
 							<a href="settings.html" id="linkSettingsConsumer">Settings</a>
-                        </li>    
+                        </li>         
 					</ul>
 				</div>
 				
@@ -280,7 +279,7 @@ function drawCurveTypes()
      
             <h3 id="headerAnalyze">Analyze</h3>
 
-            <div id="chart_div" style="width: 100%;"></div>
+<!--             <div id="chart_div" style="width: 100%;"></div> -->
             
             <div class="form-group">
                 <span id="selectUtilityTotal">Total:</span>

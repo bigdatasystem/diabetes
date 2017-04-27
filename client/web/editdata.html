@@ -45,20 +45,19 @@
 					<ul class="nav navbar-nav navbar-right">
                         <li>     
 							<a href="login.html" id="linkLogin">Login (optional)</a>                     
-                        </li>     
-                        <li>     
+                        </li>        
 						<li>                         
-							<a href="editdata.html" id="linkEditDataConsumer">Edit patient data</a>
+							<a href="editdata.html" id="linkEditDataConsumer">Edit/Predict patient</a>
                         </li>      
 						<li>                             
-							<a href="analyze.html" id="linkAnalyze">Train</a>
+							<a href="train.html" id="linkAnalyze">Train/Test system</a>
                         </li>                               
 						<li>                             
-							<a href="analyze.html" id="linkAnalyze">Predict</a>
+							<a href="analyze.html" id="linkAnalyze">Analyze system</a>
                         </li>                           
 						<li>                             
 							<a href="settings.html" id="linkSettingsConsumer">Settings</a>
-                        </li>    
+                        </li>         
 					</ul>
 				</div>
 				
@@ -67,56 +66,51 @@
 	</div>
 	<div class="row clearfix">
 		<div class="col-md-4 column">    
-            <h3 id="headerEditDataConsumer">Edit consumer data</h3 >
+            <h3 id="headerEditDataConsumer">Edit/Predict patient</h3 >
             <form role="form">
                 <div class="form-group">
-                    <label id="interval1Label" for="interval1Input">Jan:</label>
-                    <input type="number" class="form-control" id="interval1Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label for="editUserGenderInput">Gender:</label>
+                    <select id="editUserGenderInput" class="form-control">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>                                                 
+                    </select>                        
+                </div>             
+                <div class="form-group">
+                    <label id="interval1Label" for="interval1Input">BMI:</label>
+                    <input type="number" class="form-control" id="interval1Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval2Label" for="interval2Input">Feb:</label>
-                    <input type="number" class="form-control" id="interval2Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label id="interval2Label" for="interval2Input">Height:</label>
+                    <input type="number" class="form-control" id="interval2Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval3Label" for="interval3Input">Mar:</label>
-                    <input type="number" class="form-control" id="interval3Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label id="interval3Label" for="interval3Input">Weight:</label>
+                    <input type="number" class="form-control" id="interval3Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval4Label" for="interval4Input">Apr:</label>
-                    <input type="number" class="form-control" id="interval4Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label id="interval4Label" for="interval4Input">Systolic BP:</label>
+                    <input type="number" class="form-control" id="interval4Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval5Label" for="interval5Input">May:</label>
-                    <input type="number" class="form-control" id="interval5Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label id="interval5Label" for="interval5Input">Diastolic BP:</label>
+                    <input type="number" class="form-control" id="interval5Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval6Label" for="interval6Input">Jun:</label>
-                    <input type="number" class="form-control" id="interval6Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label id="interval6Label" for="interval6Input">Respiratory Rate:</label>
+                    <input type="number" class="form-control" id="interval6Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval7Label" for="interval7Input">Jul:</label>
-                    <input type="number" class="form-control" id="interval7Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label id="interval7Label" for="interval7Input">Heart Rate:</label>
+                    <input type="number" class="form-control" id="interval7Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval8Label" for="interval8Input">Aug:</label>
-                    <input type="number" class="form-control" id="interval8Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
+                    <label id="interval8Label" for="interval8Input">Temperature:</label>
+                    <input type="number" class="form-control" id="interval8Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
                 </div>
                 <div class="form-group">
-                    <label id="interval9Label" for="interval9Input">Sep:</label>
-                    <input type="number" class="form-control" id="interval9Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
-                </div>
-                <div class="form-group">
-                    <label id="interval10Label" for="interval10Input">Oct:</label>
-                    <input type="number" class="form-control" id="interval10Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
-                </div>
-                <div class="form-group">
-                    <label id="interval11Label" for="interval11Input">Nov:</label>
-                    <input type="number" class="form-control" id="interval11Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
-                </div>  
-                <div class="form-group">
-                    <label id="interval12Label" for="interval12Input">Dec:</label>
-                    <input type="number" class="form-control" id="interval12Input" placeholder="Enter use" step="0.01" onchange="saveDataConsumer()">
-                </div>                       
+                    <label id="interval9Label" for="interval9Input">Medication:</label>
+                    <input type="number" class="form-control" id="interval9Input" placeholder="Enter value" step="0.01" onchange="saveDataConsumer()">
+                </div>                     
             </form>
 		</div>        
 	</div>
