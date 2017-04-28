@@ -3,13 +3,13 @@
 <!-- config.xml reference: https://build.phonegap.com/docs/config-xml -->
 <widget xmlns     = "http://www.w3.org/ns/widgets"
         xmlns:gap = "http://phonegap.com/ns/1.0"
-        id        = "com.bitmachine.myutilities"
+        id        = "com.bitmachine.diabetes"
         version   = "1.0.1"
         versionCode="10002">
 
-    <name>myutilities</name>
+    <name>diabetes</name>
 
-    <description>myutilities</description>
+    <description>diabetes</description>
 
     <author href="" email="johnmcarneiro@gmail.com">bitmachine</author>
     
