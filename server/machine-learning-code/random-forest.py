@@ -13,7 +13,7 @@ testStartIndex = 6501 #10
 testEndIndex = 9948 # 19
 
 timeStart = time.time()
-database_loc = 'compData.db'
+database_loc = '..\data\compData.db'
 database = sqlite3.connect(database_loc)
 
 # list holds [BMI1,YearOfBirth1,ICD9Code1, [list of lab tests1], [next one]]
