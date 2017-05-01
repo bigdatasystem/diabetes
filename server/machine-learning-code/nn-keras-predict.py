@@ -7,31 +7,32 @@ from keras.layers import Dense
 import numpy
 
 # fix random seed for reproducibility
-seed = 7
-numpy.random.seed(seed)
+numpy.random.seed(7)
 
-# load pima indians dataset
+# load dataset
 dataset = numpy.loadtxt("..\data\diabetes.csv", delimiter=",")
 
-# split into input (X) and output (Y) variables
+# split into input X and output Y variables
 X = dataset[:,0:8]
 Y = dataset[:,8]
 
-# create model
+# create the model
 model = Sequential()
 model.add(Dense(12, input_dim=8, init='uniform', activation='relu'))
 model.add(Dense(8, init='uniform', activation='relu'))
 model.add(Dense(1, init='uniform', activation='sigmoid'))
 
-# Compile model
+# compile the model
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-# Fit the model
+# fit the model
 model.fit(X, Y, nb_epoch=150, batch_size=10,  verbose=2)
 
-# calculate predictions
+# calculate the predictions
 predictions = model.predict(X)
 
 # round predictions
 rounded = [round(x[0]) for x in predictions]
+
+# print the predictions
 print(rounded)
