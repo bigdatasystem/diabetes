@@ -5,46 +5,63 @@
 import time
 import math
 import numpy
+import pymongo
+import json
 import sqlite3
+from pymongo import MongoClient
+
+timeStart = time.time()
+mongoDBClient = MongoClient("localhost", 27017, maxPoolSize=50)
 
 trainStartIndex = 0
 trainEndIndex = 6500 # 9
-testStartIndex = 6501 #10
+testStartIndex = 6501 # 10
 testEndIndex = 9948 # 19
 
-timeStart = time.time()
-database_loc = '..\data\compData.db'
-database = sqlite3.connect(database_loc)
-
 # list holds [BMI1,YearOfBirth1,ICD9Code1, [list of lab tests1], [next one]]
-X_array = [] 
+xArray = [] 
 
 # list holds [0,1] which is [no diabetes, yes diabetes]
-Y_array = []
+yArray = []
 
 from sklearn.ensemble import RandomForestClassifier
 forest_object = RandomForestClassifier(n_estimators=2000,oob_score=True)
 
+# mongoDBClient.databaseName.table
+collectionTrainingSyncPatient = mongoDBClient.training.training_SyncPatient 
+
+# filter is empty to get all records from mongodb
+cursorTrainingSyncPatient = collectionTrainingSyncPatient.find({}) 
+
+# list of patient ids
+trainingPatientIDs = []
+testingPatientIDs = []
+
+# loop thru rows in mongoDB table
+for document in cursorTrainingSyncPatient: 
+    trainingPatientIDs.append(document["PatientGuid"])
+    testingPatientIDs.append(document["PatientGuid"])
+
+database_loc = '..\data\compData.db'
+database = sqlite3.connect(database_loc)
 data = database.cursor()
-training_patientIDs = data.execute('SELECT DISTINCT PatientGuid FROM training_patient').fetchall() 
-testing_patientIDs = data.execute('SELECT DISTINCT PatientGuid FROM training_patient').fetchall()
 
 # Note: there are 9948 patientIDs from training_patient, and 4979 from test_patient
 
-def getTranscript(patient,train_or_test):
-    if (train_or_test == 0): #TRAINING
-        ALL_data = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM training_transcript WHERE PatientGuid= '%s'" % patient[0]).fetchall()
-    elif (train_or_test == 1): #TESTING
-        ALL_data = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM test_transcript WHERE PatientGuid= '%s'" % patient[0]).fetchall()
+def getTranscript(patient,trainOrTest):
+    if (trainOrTest == 0): #TRAINING
+        allData = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM training_transcript WHERE PatientGuid= '%s'" % patient).fetchall()
+    elif (trainOrTest == 1): #TESTING
+        allData = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM test_transcript WHERE PatientGuid= '%s'" % patient).fetchall()
     
     # loop for feature in order of importance detecting diabetes (BMI first, then Height, then Weight, etc)
     #    next loop through each row for patient (one feature at a time)
-    features_list = []
+    featuresList = []
     for x in range(0,8):
         THIS_values = []
         
         # get a list of all none zero THIS recordings for the current patient
-        for each_THIS_value in ALL_data:
+        for each_THIS_value in allData:
             if (each_THIS_value[x] != 0.0 and each_THIS_value[x] != 'NULL'):
                 THIS_values.append(float(each_THIS_value[x]))
         if (len(THIS_values) > 0):
@@ -55,19 +72,19 @@ def getTranscript(patient,train_or_test):
             for value in THIS_values:
                 total_sum+=value
             average_THIS = total_sum / length
-            features_list.append(average_THIS)
+            featuresList.append(average_THIS)
             """
-            features_list.append(numpy.median(numpy.array([THIS_values])))
+            featuresList.append(numpy.median(numpy.array([THIS_values])))
         else:
-            features_list.append(0)
-    return features_list
+            featuresList.append(0)
+    return featuresList
 
-def getGender(patient,train_or_test):
-    if (train_or_test == 0): #TRAINING
-        gender = data.execute("SELECT Gender FROM training_patient WHERE PatientGuid= '%s'" % patient[0]).fetchone()
-    elif (train_or_test == 1): #TESTING
-        gender = data.execute("SELECT Gender FROM training_patient WHERE PatientGuid= '%s'" % patient[0]).fetchone()
-        
+def getGender(patient,trainOrTest):
+    if (trainOrTest == 0): #TRAINING
+        gender = data.execute("SELECT Gender FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()
+    elif (trainOrTest == 1): #TESTING
+        gender = data.execute("SELECT Gender FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()
+            
     if (gender[0] == 'M'):
         return 0
     elif (gender[0] == 'F'):
@@ -99,14 +116,14 @@ labTestList = [(u'25 OH VITAMIN D',), (u'A/G Ratio',), (u'ABS BASOPHILS',), (u'A
 # gets the HL7Text
 # return a number indicating what lab tests have been performed for this patient
 # example: [[0],[0],[1],[0]] if coding is (testtype1,testtype2,testtype3,testtype4) and patient only had testtype3
-def getHL7Text(patient, train_or_test):
+def getHL7Text(patient, trainOrTest):
 
     code = [0]*219
     
-    if (train_or_test == 0): #TRAINING
-        all_tests_received = data.execute("SELECT HL7Text FROM training_labs WHERE PatientGuid= '%s'" % patient[0]).fetchall()
-    elif (train_or_test == 1): #TESTING
-        all_tests_received = data.execute("SELECT HL7Text FROM test_labs WHERE PatientGuid= '%s'" % patient[0]).fetchall()
+    if (trainOrTest == 0): #TRAINING
+        all_tests_received = data.execute("SELECT HL7Text FROM training_labs WHERE PatientGuid= '%s'" % patient).fetchall()
+    elif (trainOrTest == 1): #TESTING
+        all_tests_received = data.execute("SELECT HL7Text FROM test_labs WHERE PatientGuid= '%s'" % patient).fetchall()
  
     for each_test in all_tests_received:
         if (each_test in labTestList):
@@ -137,14 +154,14 @@ diagnosisDescriptionList = [(u'Abdominal aortic aneurysm without mention of rupt
 
 # return a number indicating how many of each type of lab tests have been performed for this patient
 # example: [[0],[0],[1],[0]] if coding is (testtype1,testtype2,testtype3 (one test),testtype4) and patient only had testtype3
-def getDiagnosisDescription(patient,train_or_test):
+def getDiagnosisDescription(patient,trainOrTest):
 
     code = [0]*2304
     
-    if (train_or_test == 0): #TRAINING
-        all_DiagnosisDescription_received = data.execute("SELECT DiagnosisDescription FROM training_diagnosis WHERE PatientGuid= '%s'" % patient[0]).fetchall()
-    elif (train_or_test == 1): #TESTING
-        all_DiagnosisDescription_received = data.execute("SELECT DiagnosisDescription FROM test_diagnosis WHERE PatientGuid= '%s'" % patient[0]).fetchall()
+    if (trainOrTest == 0): #TRAINING
+        all_DiagnosisDescription_received = data.execute("SELECT DiagnosisDescription FROM training_diagnosis WHERE PatientGuid= '%s'" % patient).fetchall()
+    elif (trainOrTest == 1): #TESTING
+        all_DiagnosisDescription_received = data.execute("SELECT DiagnosisDescription FROM test_diagnosis WHERE PatientGuid= '%s'" % patient).fetchall()
 
     for each_diagnosis in all_DiagnosisDescription_received:
         if (each_diagnosis in diagnosisDescriptionList):
@@ -175,14 +192,14 @@ medicationNameList = [(u'ALPRAZolam ER (ALPRAZolam) oral tablet, extended releas
 
 # return a number indicating how many of each type of lab tests have been performed for this patient
 # example: [[0],[0],[1],[0]] if coding is (testtype1,testtype2,testtype3 (one test),testtype4) and patient only had testtype3
-def getMedicationName(patient, train_or_test):
+def getMedicationName(patient, trainOrTest):
 
     code = [0]*1478
     
-    if (train_or_test == 0): #TRAINING
-        all_MedicationName_received = data.execute("SELECT MedicationName FROM training_medication WHERE PatientGuid= '%s'" % patient[0]).fetchall()
-    elif (train_or_test == 1): #TESTING
-        all_MedicationName_received = data.execute("SELECT MedicationName FROM test_medication WHERE PatientGuid= '%s'" % patient[0]).fetchall()
+    if (trainOrTest == 0): #TRAINING
+        all_MedicationName_received = data.execute("SELECT MedicationName FROM training_medication WHERE PatientGuid= '%s'" % patient).fetchall()
+    elif (trainOrTest == 1): #TESTING
+        all_MedicationName_received = data.execute("SELECT MedicationName FROM test_medication WHERE PatientGuid= '%s'" % patient).fetchall()
 
     for each_medication in all_MedicationName_received:
         if (each_medication in medicationNameList):
@@ -195,23 +212,23 @@ def getMedicationName(patient, train_or_test):
     
 print("training")    
 x=0
-for patient in training_patientIDs[trainStartIndex:trainEndIndex]:
+for patient in trainingPatientIDs[trainStartIndex:trainEndIndex]:
     newFeaturesList = getTranscript(patient,0) # BMI through Temperature
     newFeaturesList.append(getGender(patient,0))
     newFeaturesList = newFeaturesList + getHL7Text(patient,0)
     newFeaturesList = newFeaturesList + getDiagnosisDescription(patient,0)
     newFeaturesList = newFeaturesList + getMedicationName(patient,0)
     #print(newFeaturesList)
-    X_array.append(newFeaturesList) 
+    xArray.append(newFeaturesList) 
     
     # get target data (whether patient has diabetes or not)
-    diabetes = data.execute("SELECT dmIndicator FROM training_patient WHERE PatientGuid= '%s'" % patient[0]).fetchone()
-    Y_array.append(bool(diabetes[0]))
+    diabetes = data.execute("SELECT dmIndicator FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()
+    yArray.append(bool(diabetes[0]))
     
     print(x),
     x=x+1
     
-forest_object = forest_object.fit(numpy.array(X_array), numpy.array(Y_array)) #random forest
+forest_object = forest_object.fit(numpy.array(xArray), numpy.array(yArray)) #random forest
 print()
 print("oob_score_ = %f" % forest_object.oob_score_)
 
@@ -236,7 +253,7 @@ total_log_loss=0.0
 
 print("testing")  
 x=0
-for patient in testing_patientIDs[testStartIndex:testEndIndex]:
+for patient in testingPatientIDs[testStartIndex:testEndIndex]:
     newFeaturesList = getTranscript(patient,0)
     newFeaturesList.append(getGender(patient,0))
     newFeaturesList = newFeaturesList + getHL7Text(patient,0)
@@ -249,7 +266,7 @@ for patient in testing_patientIDs[testStartIndex:testEndIndex]:
         proba_predicted = forest_object.predict_proba(newFeaturesList)[0][1]
     except:
         pass
-    correct_answer = data.execute("SELECT dmIndicator FROM training_patient WHERE PatientGuid= '%s'" % patient[0]).fetchone()[0]
+    correct_answer = data.execute("SELECT dmIndicator FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()[0]
     
     if correct_answer == 1:
         total_diabetes_diagnosis+=1
