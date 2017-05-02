@@ -98,7 +98,7 @@ def getHL7Text(patient, trainOrTest):
     collectionTrainingSyncLabObservation = mongoDBClient.training.training_SyncLabObservation
     cursorPatient = collectionTrainingSyncLabObservation.find( { "PatientGuid": patient } ) 
     if (trainOrTest == 1):
-        collectionTestingSyncLabObservation = mongoDBClient.training.testing_SyncLabObservation
+        collectionTestingSyncLabObservation = mongoDBClient.testing.testing_SyncLabObservation
         cursorPatient = collectionTestingSyncLabObservation.find( { "PatientGuid": patient } ) 
    
     all_tests_received = []
@@ -142,7 +142,7 @@ def getDiagnosisDescription(patient,trainOrTest):
     collectionTrainingSyncDiagnosis = mongoDBClient.training.training_SyncDiagnosis
     cursorPatient = collectionTrainingSyncDiagnosis.find( { "PatientGuid": patient } ) 
     if (trainOrTest == 1):
-        collectionTestingSyncDiagnosis = mongoDBClient.training.testing_SyncDiagnosis    
+        collectionTestingSyncDiagnosis = mongoDBClient.testing.testing_SyncDiagnosis    
         cursorPatient = collectionTestingSyncDiagnosis.find( { "PatientGuid": patient } ) 
    
     all_DiagnosisDescription_received = []
@@ -185,8 +185,8 @@ def getMedicationName(patient, trainOrTest):
     collectionTrainingSyncMedication = mongoDBClient.training.training_SyncMedication
     cursorPatient = collectionTrainingSyncMedication.find( { "PatientGuid": patient } ) 
     if (trainOrTest == 1):
-        collectionTrainingSyncMedication = mongoDBClient.training.training_SyncMedication    
-        cursorPatient = collectionTrainingSyncMedication.find( { "PatientGuid": patient } ) 
+        collectionTestingSyncMedication = mongoDBClient.testing.training_SyncMedication    
+        cursorPatient = collectionTestingSyncMedication.find( { "PatientGuid": patient } ) 
 
     all_MedicationName_received = []
     for document in cursorPatient: 
