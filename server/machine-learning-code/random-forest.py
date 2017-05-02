@@ -14,9 +14,9 @@ timeStart = time.time()
 mongoDBClient = MongoClient("localhost", 27017, maxPoolSize=50)
 
 trainStartIndex = 0
-trainEndIndex = 6500 # 9
-testStartIndex = 6501 # 10
-testEndIndex = 9948 # 19
+trainEndIndex = 6500 #9
+testStartIndex = 6501 #10
+testEndIndex =  9948 #19
 
 # list holds [BMI1,YearOfBirth1,ICD9Code1, [list of lab tests1], [next one]]
 xArray = [] 
@@ -28,10 +28,12 @@ from sklearn.ensemble import RandomForestClassifier
 forest_object = RandomForestClassifier(n_estimators=2000,oob_score=True)
 
 # mongoDBClient.databaseName.table
-collectionTrainingSyncPatient = mongoDBClient.training.training_SyncPatient 
+collectionTrainingSyncPatient = mongoDBClient.training.training_SyncPatient
+collectionTestingSyncPatient = mongoDBClient.testing.testing_SyncPatient
 
 # filter is empty to get all records from mongodb
 cursorTrainingSyncPatient = collectionTrainingSyncPatient.find({}) 
+cursorTestingSyncPatient = collectionTestingSyncPatient.find({}) 
 
 # list of patient ids
 trainingPatientIDs = []
@@ -40,54 +42,27 @@ testingPatientIDs = []
 # loop thru rows in mongoDB table
 for document in cursorTrainingSyncPatient: 
     trainingPatientIDs.append(document["PatientGuid"])
-    testingPatientIDs.append(document["PatientGuid"])
 
+for document in cursorTestingSyncPatient: 
+    testingPatientIDs.append(document["PatientGuid"])
+    
 database_loc = '..\data\compData.db'
 database = sqlite3.connect(database_loc)
 data = database.cursor()
 
 # Note: there are 9948 patientIDs from training_patient, and 4979 from test_patient
 
-def getTranscript(patient,trainOrTest):
-    if (trainOrTest == 0): #TRAINING
-        allData = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM training_transcript WHERE PatientGuid= '%s'" % patient).fetchall()
-    elif (trainOrTest == 1): #TESTING
-        allData = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM test_transcript WHERE PatientGuid= '%s'" % patient).fetchall()
-    
-    # loop for feature in order of importance detecting diabetes (BMI first, then Height, then Weight, etc)
-    #    next loop through each row for patient (one feature at a time)
-    featuresList = []
-    for x in range(0,8):
-        THIS_values = []
-        
-        # get a list of all none zero THIS recordings for the current patient
-        for each_THIS_value in allData:
-            if (each_THIS_value[x] != 0.0 and each_THIS_value[x] != 'NULL'):
-                THIS_values.append(float(each_THIS_value[x]))
-        if (len(THIS_values) > 0):
-            """
-            #Average the THIS recordings
-            length = len(THIS_values)
-            total_sum = 0
-            for value in THIS_values:
-                total_sum+=value
-            average_THIS = total_sum / length
-            featuresList.append(average_THIS)
-            """
-            featuresList.append(numpy.median(numpy.array([THIS_values])))
-        else:
-            featuresList.append(0)
-    return featuresList
-
 def getGender(patient,trainOrTest):
-    if (trainOrTest == 0): #TRAINING
-        gender = data.execute("SELECT Gender FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()
-    elif (trainOrTest == 1): #TESTING
-        gender = data.execute("SELECT Gender FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()
+
+    cursorPatient = collectionTrainingSyncPatient.find( { "PatientGuid": patient } ) 
+    if (trainOrTest == 1):
+        cursorPatient = collectionTestingSyncPatient.find( { "PatientGuid": patient } ) 
+    
+    gender = cursorPatient[0]["Gender"]
             
-    if (gender[0] == 'M'):
+    if (gender == 'M'):
         return 0
-    elif (gender[0] == 'F'):
+    elif (gender == 'F'):
         return 1
     else:
         print("ERROR IN GENDER")
@@ -120,15 +95,21 @@ def getHL7Text(patient, trainOrTest):
 
     code = [0]*219
     
-    if (trainOrTest == 0): #TRAINING
-        all_tests_received = data.execute("SELECT HL7Text FROM training_labs WHERE PatientGuid= '%s'" % patient).fetchall()
-    elif (trainOrTest == 1): #TESTING
-        all_tests_received = data.execute("SELECT HL7Text FROM test_labs WHERE PatientGuid= '%s'" % patient).fetchall()
+    collectionTrainingSyncLabObservation = mongoDBClient.training.training_SyncLabObservation
+    cursorPatient = collectionTrainingSyncLabObservation.find( { "PatientGuid": patient } ) 
+    if (trainOrTest == 1):
+        collectionTestingSyncLabObservation = mongoDBClient.training.testing_SyncLabObservation
+        cursorPatient = collectionTestingSyncLabObservation.find( { "PatientGuid": patient } ) 
+   
+    all_tests_received = []
+    for document in cursorPatient: 
+        all_tests_received.append(document["HL7Text"])
  
     for each_test in all_tests_received:
         if (each_test in labTestList):
             location = labTestList.index(each_test)
             code[location] +=1
+            
     return code
 
 # this list has low occurance DiagnosisDescription removed to improve performance
@@ -157,11 +138,16 @@ diagnosisDescriptionList = [(u'Abdominal aortic aneurysm without mention of rupt
 def getDiagnosisDescription(patient,trainOrTest):
 
     code = [0]*2304
-    
-    if (trainOrTest == 0): #TRAINING
-        all_DiagnosisDescription_received = data.execute("SELECT DiagnosisDescription FROM training_diagnosis WHERE PatientGuid= '%s'" % patient).fetchall()
-    elif (trainOrTest == 1): #TESTING
-        all_DiagnosisDescription_received = data.execute("SELECT DiagnosisDescription FROM test_diagnosis WHERE PatientGuid= '%s'" % patient).fetchall()
+
+    collectionTrainingSyncDiagnosis = mongoDBClient.training.training_SyncDiagnosis
+    cursorPatient = collectionTrainingSyncDiagnosis.find( { "PatientGuid": patient } ) 
+    if (trainOrTest == 1):
+        collectionTestingSyncDiagnosis = mongoDBClient.training.testing_SyncDiagnosis    
+        cursorPatient = collectionTestingSyncDiagnosis.find( { "PatientGuid": patient } ) 
+   
+    all_DiagnosisDescription_received = []
+    for document in cursorPatient: 
+        all_DiagnosisDescription_received.append(document["DiagnosisDescription"])
 
     for each_diagnosis in all_DiagnosisDescription_received:
         if (each_diagnosis in diagnosisDescriptionList):
@@ -195,17 +181,53 @@ medicationNameList = [(u'ALPRAZolam ER (ALPRAZolam) oral tablet, extended releas
 def getMedicationName(patient, trainOrTest):
 
     code = [0]*1478
-    
-    if (trainOrTest == 0): #TRAINING
-        all_MedicationName_received = data.execute("SELECT MedicationName FROM training_medication WHERE PatientGuid= '%s'" % patient).fetchall()
-    elif (trainOrTest == 1): #TESTING
-        all_MedicationName_received = data.execute("SELECT MedicationName FROM test_medication WHERE PatientGuid= '%s'" % patient).fetchall()
+
+    collectionTrainingSyncMedication = mongoDBClient.training.training_SyncMedication
+    cursorPatient = collectionTrainingSyncMedication.find( { "PatientGuid": patient } ) 
+    if (trainOrTest == 1):
+        collectionTrainingSyncMedication = mongoDBClient.training.training_SyncMedication    
+        cursorPatient = collectionTrainingSyncMedication.find( { "PatientGuid": patient } ) 
+
+    all_MedicationName_received = []
+    for document in cursorPatient: 
+        all_MedicationName_received.append(document["MedicationName"])
 
     for each_medication in all_MedicationName_received:
         if (each_medication in medicationNameList):
             location = medicationNameList.index(each_medication)
             code[location] +=1
     return code
+
+def getTranscript(patient,trainOrTest):
+    if (trainOrTest == 0): #TRAINING
+        allData = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM training_transcript WHERE PatientGuid= '%s'" % patient).fetchall()
+    elif (trainOrTest == 1): #TESTING
+        allData = data.execute("SELECT BMI,Height,Weight,SystolicBP,DiastolicBP,RespiratoryRate,HeartRate,Temperature FROM test_transcript WHERE PatientGuid= '%s'" % patient).fetchall()
+    
+    # loop for feature in order of importance detecting diabetes (BMI first, then Height, then Weight, etc)
+    #    next loop through each row for patient (one feature at a time)
+    featuresList = []
+    for x in range(0,8):
+        THIS_values = []
+        
+        # get a list of all none zero THIS recordings for the current patient
+        for each_THIS_value in allData:
+            if (each_THIS_value[x] != 0.0 and each_THIS_value[x] != 'NULL'):
+                THIS_values.append(float(each_THIS_value[x]))
+        if (len(THIS_values) > 0):
+            """
+            #Average the THIS recordings
+            length = len(THIS_values)
+            total_sum = 0
+            for value in THIS_values:
+                total_sum+=value
+            average_THIS = total_sum / length
+            featuresList.append(average_THIS)
+            """
+            featuresList.append(numpy.median(numpy.array([THIS_values])))
+        else:
+            featuresList.append(0)
+    return featuresList
 
     
 # MAIN PROGRAM STARTS HERE
@@ -222,8 +244,10 @@ for patient in trainingPatientIDs[trainStartIndex:trainEndIndex]:
     xArray.append(newFeaturesList) 
     
     # get target data (whether patient has diabetes or not)
-    diabetes = data.execute("SELECT dmIndicator FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()
-    yArray.append(bool(diabetes[0]))
+    cursorPatient = collectionTrainingSyncPatient.find( { "PatientGuid": patient } )     
+    diabetes = cursorPatient[0]["DMIndicator"]
+    
+    yArray.append(bool(diabetes))
     
     print(x),
     x=x+1
@@ -253,7 +277,7 @@ total_log_loss=0.0
 
 print("testing")  
 x=0
-for patient in testingPatientIDs[testStartIndex:testEndIndex]:
+for patient in trainingPatientIDs[testStartIndex:testEndIndex]:
     newFeaturesList = getTranscript(patient,0)
     newFeaturesList.append(getGender(patient,0))
     newFeaturesList = newFeaturesList + getHL7Text(patient,0)
@@ -266,8 +290,10 @@ for patient in testingPatientIDs[testStartIndex:testEndIndex]:
         proba_predicted = forest_object.predict_proba(newFeaturesList)[0][1]
     except:
         pass
-    correct_answer = data.execute("SELECT dmIndicator FROM training_patient WHERE PatientGuid= '%s'" % patient).fetchone()[0]
-    
+        
+    cursorPatient = collectionTrainingSyncPatient.find( { "PatientGuid": patient } )     
+    correct_answer = cursorPatient[0]["DMIndicator"]
+          
     if correct_answer == 1:
         total_diabetes_diagnosis+=1
     total_tested +=1
